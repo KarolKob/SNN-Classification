@@ -18,6 +18,32 @@ class Person:
             self.c = -60
             self.d = 8
 
+def count_snn_response(n, input):
+    network_size = len(n)
+    v = []
+    u = []
+    sim_time = 200
+    dt = 1
+
+    T = math.ceil(sim_time/dt)
+    ii = np.zeros(T)
+
+    for i in range(network_size):
+        init_v = np.zeros(T)
+        init_u = np.zeros(T)
+        init_v[0] = -70          # Resting potential
+        init_u[0] = -14          # Steady state
+        v.append(init_v)
+        u.append(init_u)
+
+    time_range = range(0, T-1)
+
+    for i in time_range:
+        
+        
+
+
+
 def network_mapping_routing(input, wout, Cref):
     sampling = len(input[0])
     patterns = len(input)
@@ -26,7 +52,7 @@ def network_mapping_routing(input, wout, Cref):
     avg = [0 for i in range(sampling)]
     w1 = [0 for i in range(sampling)]
     w2 = [0 for i in range(sampling)]
-    n = [0 for i in range(sampling)]
+    n = [Person() for i in range(sampling)]
     C = [0 for i in range(sampling)]
     dt1, dt2 = 0, 0
 
@@ -41,9 +67,9 @@ def network_mapping_routing(input, wout, Cref):
         #  w1[i] = 1.4*(26 - avg[i])
 
         if w1[i] < 0:
-            # n(i) = IIS()
-        else:
-            # n(i) = TS() 
+            n[i] = Person(isIIS=True)
+        # else:
+        #     n[i] = Person()
 
         w2[i] = wout
         C[i] = Cref
