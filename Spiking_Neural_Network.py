@@ -39,7 +39,19 @@ def count_snn_response(n, input):
     time_range = range(0, T-1)
 
     for i in time_range:
-        
+        for j in range(network_size):
+            if v[j][i] < 35:
+                # Update ODE
+                dv = (0.04*v[j][i] + 5)*v[j][i] + 140 - u[j][i]
+                v[j][i + 1] = v[j][i] + (dv + Iapp)*dt
+                du = a*(b*v[j][i] - u[j][i])
+                u[j][i + 1] = u[j][i] + dt*du
+            else:
+                # Spike
+                v[j][i] = 35
+                v[j][i + 1] = c
+                u[j][i + 1] = u[j][i] + d
+
         
 
 
