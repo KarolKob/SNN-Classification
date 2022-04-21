@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
 import matplotlib.gridspec as gridspec
 
-class Person:
+class Neuron:
     def __init__(self, isIIS = False):
         
         if isIIS == False:
@@ -18,41 +18,80 @@ class Person:
             self.c = -60
             self.d = 8
 
-def count_snn_response(n, input):
+w_out = 0.00225             # TODO: Evaluate if it's correct
+
+def synapse_dt(w, vin, vout, vinp, voutp):
+    c_i = 0.0083
+
+    I_out_s = w * (vin - vout) + ((vin - vout) - (vinp - voutp)) * c_i
+
+    return I_out_s
+
+
+def count_snn_response(n, input, patterns, start):
     network_size = len(n)
     v = []
     u = []
-    sim_time = 200
+    Iapp = []
+    sim_time = patterns
     dt = 1
 
     T = math.ceil(sim_time/dt)
     ii = np.zeros(T)
 
+    v_out = np.zeros(T)
+    u_out = np.zeros(T)
+    I_out = np.zeros(T)
+
     for i in range(network_size):
         init_v = np.zeros(T)
         init_u = np.zeros(T)
+        init_Iapp = np.zeros(T)
         init_v[0] = -70          # Resting potential
         init_u[0] = -14          # Steady state
+
+        if i == 0:
+            v_out[i] = -70       # Resting potential of the output
+            u_out[i] = -14       # Steady state
+
         v.append(init_v)
         u.append(init_u)
+        Iapp.append(init_Iapp)
 
     time_range = range(0, T-1)
 
     for i in time_range:
+        # Setting the input current values
+        if i < 3:
+            for j in range(network_size):
+                Iapp[j][i] = 10
+        elif i < start:
+            for j in range(network_size):
+                Iapp[j][i] = 0
+        else:
+            for j in range(network_size):
+                Iapp[j][i] = input[j][i]
+
+        # counting the neuron response
         for j in range(network_size):
             if v[j][i] < 35:
                 # Update ODE
-                dv = (0.04*v[j][i] + 5)*v[j][i] + 140 - u[j][i]
-                v[j][i + 1] = v[j][i] + (dv + Iapp)*dt
-                du = a*(b*v[j][i] - u[j][i])
-                u[j][i + 1] = u[j][i] + dt*du
+                dv = (0.04 * v[j][i] + 5) * v[j][i] + 140 - u[j][i]
+                v[j][i + 1] = v[j][i] + (dv + Iapp[j][i]) * dt
+                du = n[j].a * (n[j].b * v[j][i] - u[j][i])
+                u[j][i + 1] = u[j][i] + dt * du
             else:
                 # Spike
                 v[j][i] = 35
-                v[j][i + 1] = c
-                u[j][i + 1] = u[j][i] + d
+                v[j][i + 1] = n[j].c
+                u[j][i + 1] = u[j][i] + n[j].d
 
-        
+        if i > 0:
+            I_out[j] += synapse_dt(w_out, v[j][i], v_out[i], v[j][i - 1], v_out[i - 1])
+        else:
+            I_out[j] += synapse_dt(w_out, v[j][i], v_out[i], 0, 0)
+
+        # TODO: Count output
 
 
 
@@ -64,7 +103,7 @@ def network_mapping_routing(input, wout, Cref):
     avg = [0 for i in range(sampling)]
     w1 = [0 for i in range(sampling)]
     w2 = [0 for i in range(sampling)]
-    n = [Person() for i in range(sampling)]
+    n = [Neuron() for i in range(sampling)]
     C = [0 for i in range(sampling)]
     dt1, dt2 = 0, 0
 
@@ -79,9 +118,9 @@ def network_mapping_routing(input, wout, Cref):
         #  w1[i] = 1.4*(26 - avg[i])
 
         if w1[i] < 0:
-            n[i] = Person(isIIS=True)
+            n[i] = Neuron(isIIS=True)
         # else:
-        #     n[i] = Person()
+        #     n[i] = Neuron()
 
         w2[i] = wout
         C[i] = Cref
