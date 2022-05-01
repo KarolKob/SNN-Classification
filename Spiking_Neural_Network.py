@@ -109,8 +109,7 @@ def count_snn_response(n, input, patterns, start):
 
 
 
-def network_mapping_routing(input, wout, Cref):
-    sampling = len(input[0])
+def network_mapping_routing(input, sampling, wout, Cref):
     patterns = len(input)
 
     L = [0 for i in range(sampling)]
@@ -143,3 +142,28 @@ def network_mapping_routing(input, wout, Cref):
 
     return w1, w2, C, n, dt1, dt2
 
+vesicle_fusion = [1, 1, 2, 2, 3, 2, 2, 1, 3, 4, 4, 3, 2, 2, 1, 2, 4, 4, 3, 4, 3, 2, 2, 1, 2, 2, 3, 3, 4, 5, 3, 4, 3, 4, 4, 3, 2, 2, 1, 2, 3, 5, 4, 4, 3, 4, 2, 3, 2, 3, 2, 2, 3, 3, 4, 4, 3, 2, 2, 3, 4, 5, 5, 4, 4, 3, 4, 6, 8, 15, 28, 30, 30, 31, 30, 32, 33, 31, 34, 35, 37, 33, 34, 35, 36, 37, 35, 34, 36, 37, 38, 38, 36, 35, 36, 38, 40, 42, 45, 42, 48, 50, 48, 46, 47, 48, 49, 52, 56, 58, 60, 62, 66, 75, 90, 115, 150, 195, 240, 275, 300, 305, 298, 290, 270, 250, 230, 200, 175, 160, 140, 125, 115, 105, 100, 90, 82, 75, 65, 68, 63, 60, 55, 50, 47, 45, 46, 45, 42, 40, 37, 34, 35, 32, 31, 28, 25, 26, 27, 25, 22, 20, 21, 20, 15, 17, 19, 16, 18, 17, 15, 13, 12, 14, 11, 10, 8, 6, 5, 3, 4]
+
+#skalowanie
+max_value = 80 #pA
+
+skala = max_value/max(vesicle_fusion)
+#vesicle_fusion = vesicle_fusion*skala
+for i in range(0, len(vesicle_fusion)):
+    vesicle_fusion[i] *= skala
+
+#print(vesicle_fusion)
+probkowanie = 20
+k = 0
+kk = 0
+iter = len(vesicle_fusion)
+original_data = []
+
+while True:
+    k = int(k+iter/probkowanie)
+    if k < iter:
+        original_data.append(vesicle_fusion[k])
+    else:
+        break
+    
+print(len(original_data))
