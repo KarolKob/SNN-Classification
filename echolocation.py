@@ -15,8 +15,17 @@ print(c.is_tangent(l)) # is l tangent to c?
 l = Line(x, y)
 print(c.is_tangent(l)) # is l tangent to c?
 print(intersection(c, l))
+
 p1, p2, p3, p4 = [(1, 1), (-1, 1), (-1, -1), (1, -1)]
 sq = Polygon(p1, p2, p3, p4)
 print(sq.area)
+
+pb1, pb2, pb3, pb4 = [(0, 4), (-4, 0), (0, -4), (4, 0)]
+sqb = Polygon(pb1, pb2, pb3, pb4)
+print(sqb.area)
+
+x = Point(0, 0)
+cir = Circle(x, 2)
+cir.arbitrary_point()
 
 # Virtual sources method for simulation of indoor acoustics

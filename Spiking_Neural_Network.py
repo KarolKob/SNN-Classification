@@ -3,8 +3,8 @@ from random import random
 import numpy as np
 from statistics import mode
 import matplotlib.pyplot as plt
-import matplotlib.mlab as mlab
-import matplotlib.gridspec as gridspec
+#import matplotlib.mlab as mlab
+#import matplotlib.gridspec as gridspec
 
 class Neuron:
     def __init__(self, isIIS = False):
