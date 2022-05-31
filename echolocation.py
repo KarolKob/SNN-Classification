@@ -17,6 +17,68 @@ l = Line(x, y)
 print(c.is_tangent(l)) # is l tangent to c?
 print(intersection(c, l))
 
+# Returns the closest point from the list to the point in the 2nd parameter
+def closest_point(list, point):
+    distance = 9999
+    index = 0
+    for i in range(0, len(list)):
+        if list[i].distance(point) < distance:
+            distance = list[i].distance(point)
+            index = i
+            
+    return list[index]
+
+# Find the side of a polygon that contains the intersection point and reflect the given line
+def find_reflection(sides, l, inter):
+    for ind in range(0, len(sides)):
+        side = sides[ind]
+        if (side.points[0][1] == inter[1] and side.points[1][1] == inter[1]) or (side.points[0][0] == inter[0] and side.points[1][0] == inter[0]):
+            perpendicular = Line2D(side.points[0], side.points[1]).perpendicular_line(inter)
+            print(side)
+            print(perpendicular)
+            sym_line = l.reflect(perpendicular)
+            return sym_line
+    return false
+
+# Return the distance from the start of generating the sound to reflecting back
+def count_reflections(circle_points, inner_polygon, outer_polygon):
+    point_matrix = []
+    for ind in range(0, len(circle_points)):
+        circ = Circle(circle_points[ind], 0.25)
+
+        # TODO: repeat for different angles
+        l = Line2D(circle_points[ind], Point2D(0, 0))
+        point_array = []
+        point_array.append(circle_points[ind])
+
+        inter = closest_point(inner_polygon.intersection(l), circle_points[ind])
+        point_array.append(inter)
+        print(inter)
+
+        sides = inner_polygon.sides
+
+        # Find the side that contains the intersection point and reflect the line
+        sym_line = find_reflection(sides, l, inter)
+
+        print(sym_line)
+
+        if len(circ.intersection(sym_line)) == 0:
+        # Find the correct point of intersection with the big square
+            inter = closest_point(outer_polygon.intersection(sym_line), inter)
+            point_array.append(inter)
+
+            print(inter)
+
+            sym_line2 = find_reflection(outer_polygon.sides, sym_line, inter)
+
+            # TODO: iterate until limit reached or intersected with the sensor
+            
+        else:
+            point_array.append(circle_points[ind])
+            point_matrix.append(point_array)
+
+# Virtual sources method for simulation of indoor acoustics
+
 p1, p2, p3, p4 = [(1, 1), (-1, 1), (-1, -1), (1, -1)]
 sq = Polygon(p1, p2, p3, p4)
 print(sq.area)
@@ -24,7 +86,6 @@ print(sq.area)
 pb1, pb2, pb3, pb4 = [(0, 4), (-4, 0), (0, -4), (4, 0)]
 sqb = Polygon(pb1, pb2, pb3, pb4)
 print(sqb.area)
-
 
 radius = 2
 x = -2
@@ -52,6 +113,7 @@ print(count)
 
 x = radius
 
+# Count the 2nd half of the circle
 while x > -radius:
     y_square = pow(radius, 2) - pow(x, 2)
 
@@ -60,12 +122,35 @@ while x > -radius:
     else:
         y = -sqrt(y_square)
 
-    cir_point = Point(x, y)
+    cir_point = Point2D(x, y)
     cir_point_array.append(cir_point)
     x = x - 0.4
     count = count + 1
 
-print(count)
-print(cir_point_array)
+# Iterate through the circle creating segments from it to (0, 0)
+l = Line2D(Point(0, 0), Point(2, 5))
 
-# Virtual sources method for simulation of indoor acoustics
+inter = closest_point(sq.intersection(l), Point(2, 5))
+print(inter)
+
+sides = sq.sides
+
+# Find the side that contains the intersection point and reflect the line
+sym_line = find_reflection(sides, l, inter)
+
+print(sym_line)
+
+# Find the correct point of intersection with the big square
+interb = closest_point(sqb.intersection(sym_line), inter)
+
+print(interb)
+
+sym_line2 = find_reflection(sqb.sides, sym_line, interb)
+
+
+# l.reflect(Line()) reflect symmetrically
+# Rotating a point against another point
+#z.rotate(pi/4, inter)
+
+#ang = l.angle_between(l2)
+#print(ang)
