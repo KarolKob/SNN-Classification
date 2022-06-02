@@ -1,3 +1,4 @@
+from numpy import square
 from sympy import *
 from sympy.geometry import *
 
@@ -45,37 +46,57 @@ def count_reflections(circle_points, inner_polygon, outer_polygon):
     point_matrix = []
     for ind in range(0, len(circle_points)):
         circ = Circle(circle_points[ind], 0.25)
+        rotating_point = Point2D(0, 0)
+        pos_inc = 1
+        neg_inc = -1
 
-        # TODO: repeat for different angles
-        l = Line2D(circle_points[ind], Point2D(0, 0))
-        point_array = []
-        point_array.append(circle_points[ind])
+        # Repeat for different angles (ac)
+        for rot_num in range(20):
+            if rot_num % 2 == 1 and rot_num != 0:
+                new_point = rotating_point.rotate((pi/180)*pos_inc, circle_points[ind])     # increasing 1 degree - pi/180
+                pos_inc += 1
+            elif rot_num % 2 == 0 and rot_num != 0:
+                new_point = rotating_point.rotate((pi/180)*neg_inc, circle_points[ind])     # decreasing 1 degree
+                neg_inc -= 1
+            else:
+                new_point = rotating_point
 
-        inter = closest_point(inner_polygon.intersection(l), circle_points[ind])
-        point_array.append(inter)
-        print(inter)
+            l = Line2D(circle_points[ind], new_point)
+            point_array = []
+            point_array.append(circle_points[ind])
 
-        sides = inner_polygon.sides
-
-        # Find the side that contains the intersection point and reflect the line
-        sym_line = find_reflection(sides, l, inter)
-
-        print(sym_line)
-
-        if len(circ.intersection(sym_line)) == 0:
-        # Find the correct point of intersection with the big square
-            inter = closest_point(outer_polygon.intersection(sym_line), inter)
+            inter = closest_point(inner_polygon.intersection(l), circle_points[ind])
             point_array.append(inter)
 
-            print(inter)
-
-            sym_line2 = find_reflection(outer_polygon.sides, sym_line, inter)
-
-            # TODO: iterate until limit reached or intersected with the sensor
+            # Find the side that contains the intersection point and reflect the line
+            sym_line = find_reflection(inner_polygon.sides, l, inter)
             
-        else:
-            point_array.append(circle_points[ind])
-            point_matrix.append(point_array)
+            if len(circ.intersection(sym_line)) == 0:                                   # TODO: the intersection function can't count with larger complexity
+                # Find the correct point of intersection with the big square
+                inter = closest_point(outer_polygon.intersection(sym_line), inter)
+                point_array.append(inter)
+
+                sym_line2 = find_reflection(outer_polygon.sides, sym_line, inter)
+                print("sym_line2: $", sym_line2)
+                # Iterate until limit reached or intersected with the sensor
+                for i in range(0, 10):
+                    inter = closest_point(inner_polygon.intersection(sym_line2), inter)
+                    point_array.append(inter)
+                    sym_line = find_reflection(inner_polygon.sides, sym_line2, inter)
+                    
+
+                    if len(circ.intersection(sym_line)) > 0:
+                        point_array.append(circle_points[ind])
+                        point_matrix.append(point_array)
+                        break
+                    else:
+                        inter = closest_point(outer_polygon.intersection(sym_line), inter)
+                        point_array.append(inter)
+
+                        sym_line2 = find_reflection(outer_polygon.sides, sym_line, inter)
+            else:
+                point_array.append(circle_points[ind])
+                point_matrix.append(point_array)
 
 # Virtual sources method for simulation of indoor acoustics
 
@@ -147,6 +168,8 @@ print(interb)
 
 sym_line2 = find_reflection(sqb.sides, sym_line, interb)
 
+square_reflections = count_reflections(cir_point_array, sq, sqb)
+print("Square reflections: $", square_reflections)
 
 # l.reflect(Line()) reflect symmetrically
 # Rotating a point against another point
