@@ -1,4 +1,3 @@
-from numpy import square
 from sympy import *
 from sympy.geometry import *
 
@@ -31,32 +30,53 @@ def closest_point(list, point):
 
 # Find the side of a polygon that contains the intersection point and reflect the given line
 def find_reflection(sides, l, inter):
+    print("inter: ", inter)
     for ind in range(0, len(sides)):
         side = sides[ind]
         if (side.points[0][1] == inter[1] and side.points[1][1] == inter[1]) or (side.points[0][0] == inter[0] and side.points[1][0] == inter[0]):
             perpendicular = Line2D(side.points[0], side.points[1]).perpendicular_line(inter)
-            print(side)
-            print(perpendicular)
             sym_line = l.reflect(perpendicular)
+            print("reflection found: ", sym_line)
             return sym_line
     return false
+
+class IntersectionPlus:
+    def __init__(self, middle_point, line_len) -> None:
+        self.segHor = Segment2D(Point2D(middle_point.x - line_len, middle_point.y), 
+                                    Point2D(middle_point.x + line_len, middle_point.y))
+        self.segVer = Segment2D(Point2D(middle_point.x, middle_point.y - line_len), 
+                                    Point2D(middle_point.x, middle_point.y + line_len))
+
+    def intersection_found(self, line):
+        inter = self.segHor.intersection(line)
+        if inter != []:
+            return true
+        else:
+            inter = self.segVer.intersection(line)
+            if inter != []:
+                return true
+            else:
+                return false
 
 # Return the distance from the start of generating the sound to reflecting back
 def count_reflections(circle_points, inner_polygon, outer_polygon):
     point_matrix = []
     for ind in range(0, len(circle_points)):
-        circ = Circle(circle_points[ind], 0.25)
         rotating_point = Point2D(0, 0)
         pos_inc = 1
         neg_inc = -1
+
+        inter_plus = IntersectionPlus(circle_points[ind], 0.1)
 
         # Repeat for different angles (ac)
         for rot_num in range(20):
             if rot_num % 2 == 1 and rot_num != 0:
                 new_point = rotating_point.rotate((pi/180)*pos_inc, circle_points[ind])     # increasing 1 degree - pi/180
+                new_point = Point2D(new_point.x.evalf(), new_point.y.evalf())
                 pos_inc += 1
             elif rot_num % 2 == 0 and rot_num != 0:
                 new_point = rotating_point.rotate((pi/180)*neg_inc, circle_points[ind])     # decreasing 1 degree
+                new_point = Point2D(new_point.x.evalf(), new_point.y.evalf())
                 neg_inc -= 1
             else:
                 new_point = rotating_point
@@ -71,12 +91,12 @@ def count_reflections(circle_points, inner_polygon, outer_polygon):
             # Find the side that contains the intersection point and reflect the line
             sym_line = find_reflection(inner_polygon.sides, l, inter)
             
-            if len(circ.intersection(sym_line)) == 0:                                   # TODO: the intersection function can't count with larger complexity
+            if not inter_plus.intersection_found(sym_line):
                 # Find the correct point of intersection with the big square
                 inter = closest_point(outer_polygon.intersection(sym_line), inter)
                 point_array.append(inter)
 
-                sym_line2 = find_reflection(outer_polygon.sides, sym_line, inter)
+                sym_line2 = find_reflection(outer_polygon.sides, sym_line, inter)           # TODO: it doesn't find that the point belongs to the sides
                 print("sym_line2: $", sym_line2)
                 # Iterate until limit reached or intersected with the sensor
                 for i in range(0, 10):
@@ -85,7 +105,7 @@ def count_reflections(circle_points, inner_polygon, outer_polygon):
                     sym_line = find_reflection(inner_polygon.sides, sym_line2, inter)
                     
 
-                    if len(circ.intersection(sym_line)) > 0:
+                    if inter_plus.intersection_found(sym_line):
                         point_array.append(circle_points[ind])
                         point_matrix.append(point_array)
                         break
