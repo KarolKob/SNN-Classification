@@ -1,5 +1,6 @@
 from sympy import *
 from sympy.geometry import *
+from joblib import Parallel, delayed
 
 x = Point(0, 0)
 y = Point(1, 1)
@@ -30,15 +31,16 @@ def closest_point(list, point):
 
 # Find the side of a polygon that contains the intersection point and reflect the given line
 def find_reflection(sides, l, inter):
-    print("inter: ", inter)
+    #print("inter: ", inter)
+    #print("sides: ", sides)
     for ind in range(0, len(sides)):
         side = sides[ind]
-        if (side.points[0][1] == inter[1] and side.points[1][1] == inter[1]) or (side.points[0][0] == inter[0] and side.points[1][0] == inter[0]):
+        if side.distance(inter) == 0:#(side.points[0][1] == inter[1] and side.points[1][1] == inter[1]) or (side.points[0][0] == inter[0] and side.points[1][0] == inter[0]):
             perpendicular = Line2D(side.points[0], side.points[1]).perpendicular_line(inter)
             sym_line = l.reflect(perpendicular)
-            print("reflection found: ", sym_line)
+            #print("reflection found: ", sym_line)
             return sym_line
-    return false
+    return False
 
 class IntersectionPlus:
     def __init__(self, middle_point, line_len) -> None:
@@ -50,17 +52,118 @@ class IntersectionPlus:
     def intersection_found(self, line):
         inter = self.segHor.intersection(line)
         if inter != []:
-            return true
+            return True
         else:
             inter = self.segVer.intersection(line)
             if inter != []:
-                return true
+                return True
             else:
-                return false
+                return False
+
+def angle_loop(ind, circle_points, inner_polygon, outer_polygon):
+    point_matrix = []
+    all_index = 0
+
+    rotating_point = Point2D(0, 0)
+    pos_inc = 1
+    neg_inc = -1
+
+    inter_plus = IntersectionPlus(circle_points[ind], 0.1)
+
+    # Repeat for different angles (ac)
+    for rot_num in range(20):
+        if rot_num % 2 == 1 and rot_num != 0:
+            new_point = rotating_point.rotate((pi/180)*pos_inc, circle_points[ind])     # increasing 1 degree - pi/180
+            new_point = Point2D(new_point.x.evalf(), new_point.y.evalf())
+            pos_inc += 1
+        elif rot_num % 2 == 0 and rot_num != 0:
+            new_point = rotating_point.rotate((pi/180)*neg_inc, circle_points[ind])     # decreasing 1 degree
+            new_point = Point2D(new_point.x.evalf(), new_point.y.evalf())
+            neg_inc -= 1
+        else:
+            new_point = rotating_point
+
+        all_index += 1
+        print(all_index)
+        l = Line2D(circle_points[ind], new_point)
+        point_array = []
+        point_array.append(circle_points[ind])
+
+        inter = closest_point(inner_polygon.intersection(l), circle_points[ind])
+        point_array.append(inter)
+
+        # Find the side that contains the intersection point and reflect the line
+        sym_line = find_reflection(inner_polygon.sides, l, inter)
+        
+        if not inter_plus.intersection_found(sym_line):
+            # Find the correct point of intersection with the big square
+            inter = closest_point(outer_polygon.intersection(sym_line), inter)
+            point_array.append(inter)
+
+            sym_line2 = find_reflection(outer_polygon.sides, sym_line, inter)
+            #print("sym_line2: $", sym_line2)
+            # Iterate until limit reached or intersected with the sensor
+            for i in range(0, 10):
+                if inner_polygon.intersection(sym_line2) != [] and not inner_intersection:
+                    inter = closest_point(inner_polygon.intersection(sym_line2), inter)
+                    point_array.append(inter)
+                    sym_line = find_reflection(inner_polygon.sides, sym_line2, inter)
+                    inner_intersection = True
+                
+                # The case when there's no intersecton with the inner polygon
+                else:
+                    inter = closest_point(outer_polygon.intersection(sym_line2), inter)
+                    point_array.append(inter)
+                    sym_line = find_reflection(outer_polygon.sides, sym_line2, inter)
+                    inner_intersection = False
+                
+                if inter_plus.intersection_found(sym_line):
+                    point_array.append(circle_points[ind])
+                    point_matrix.append(point_array)
+                    break
+                else:
+                    if inner_polygon.intersection(sym_line) != [] and not inner_intersection:
+                        inter = closest_point(inner_polygon.intersection(sym_line), inter)
+                        point_array.append(inter)
+                        sym_line = find_reflection(inner_polygon.sides, sym_line2, inter)
+                        inner_intersection = True
+                
+                    # The case when there's no intersecton with the inner polygon
+                    else:
+                        inter = closest_point(outer_polygon.intersection(sym_line2), inter)
+                        point_array.append(inter)
+                        sym_line = find_reflection(outer_polygon.sides, sym_line2, inter)
+                        inner_intersection = False
+
+                    inter = closest_point(outer_polygon.intersection(sym_line), inter)
+                    point_array.append(inter)
+
+                    sym_line2 = find_reflection(outer_polygon.sides, sym_line, inter)
+
+                if i == 9:
+                    point_matrix.append(point_array)
+        else:
+            point_array.append(circle_points[ind])
+            point_matrix.append(point_array)
+
+    min_dist_arr = []
+    for i in range(0, len(point_matrix)):
+        min_dist = 99999
+        for j in range(1, len(point_matrix[i])):
+            point_dist = point_matrix[i][j].distance(point_matrix[i][j - 1])
+            if min_dist > point_dist:
+                min_dist = point_dist
+        min_dist_arr.append(min_dist)
+
+    return min_dist_arr        # Count the min values for each iteration
+    
 
 # Return the distance from the start of generating the sound to reflecting back
 def count_reflections(circle_points, inner_polygon, outer_polygon):
     point_matrix = []
+    all_index = 0
+    results = Parallel(n_jobs=16)(delayed(angle_loop)(ind, circle_points, inner_polygon, outer_polygon) for ind in range(0, len(circle_points)))
+    print("ALL DONE", results)
     for ind in range(0, len(circle_points)):
         rotating_point = Point2D(0, 0)
         pos_inc = 1
@@ -81,6 +184,8 @@ def count_reflections(circle_points, inner_polygon, outer_polygon):
             else:
                 new_point = rotating_point
 
+            all_index += 1
+            print(all_index)
             l = Line2D(circle_points[ind], new_point)
             point_array = []
             point_array.append(circle_points[ind])
@@ -96,20 +201,41 @@ def count_reflections(circle_points, inner_polygon, outer_polygon):
                 inter = closest_point(outer_polygon.intersection(sym_line), inter)
                 point_array.append(inter)
 
-                sym_line2 = find_reflection(outer_polygon.sides, sym_line, inter)           # TODO: it doesn't find that the point belongs to the sides
-                print("sym_line2: $", sym_line2)
+                sym_line2 = find_reflection(outer_polygon.sides, sym_line, inter)
+                #print("sym_line2: $", sym_line2)
                 # Iterate until limit reached or intersected with the sensor
                 for i in range(0, 10):
-                    inter = closest_point(inner_polygon.intersection(sym_line2), inter)
-                    point_array.append(inter)
-                    sym_line = find_reflection(inner_polygon.sides, sym_line2, inter)
+                    if inner_polygon.intersection(sym_line2) != [] and not inner_intersection:
+                        inter = closest_point(inner_polygon.intersection(sym_line2), inter)
+                        point_array.append(inter)
+                        sym_line = find_reflection(inner_polygon.sides, sym_line2, inter)
+                        inner_intersection = True
                     
-
+                    # The case when there's no intersecton with the inner polygon
+                    else:
+                        inter = closest_point(outer_polygon.intersection(sym_line2), inter)
+                        point_array.append(inter)
+                        sym_line = find_reflection(outer_polygon.sides, sym_line2, inter)
+                        inner_intersection = False
+                    
                     if inter_plus.intersection_found(sym_line):
                         point_array.append(circle_points[ind])
                         point_matrix.append(point_array)
                         break
                     else:
+                        if inner_polygon.intersection(sym_line) != [] and not inner_intersection:
+                            inter = closest_point(inner_polygon.intersection(sym_line), inter)
+                            point_array.append(inter)
+                            sym_line = find_reflection(inner_polygon.sides, sym_line2, inter)
+                            inner_intersection = True
+                    
+                        # The case when there's no intersecton with the inner polygon
+                        else:
+                            inter = closest_point(outer_polygon.intersection(sym_line2), inter)
+                            point_array.append(inter)
+                            sym_line = find_reflection(outer_polygon.sides, sym_line2, inter)
+                            inner_intersection = False
+
                         inter = closest_point(outer_polygon.intersection(sym_line), inter)
                         point_array.append(inter)
 
