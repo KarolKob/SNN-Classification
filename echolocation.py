@@ -2,29 +2,14 @@ from sympy import *
 from sympy.geometry import *
 from joblib import Parallel, delayed
 
-x = Point(0, 0)
-y = Point(1, 1)
-z = Point(2, 2)
-zp = Point(1, 0)
-t = Triangle(zp, y, x)
-print(t.area)
-print(t.medians[x])
-m = t.medians
-print(intersection(m[x], m[y], m[zp]))
-c = Circle(x, 5)
-l = Line(Point(5, -5), Point(5, 5))
-print(c.is_tangent(l)) # is l tangent to c?
-l = Line(x, y)
-print(c.is_tangent(l)) # is l tangent to c?
-print(intersection(c, l))
-
 # Returns the closest point from the list to the point in the 2nd parameter
 def closest_point(list, point):
     distance = 9999
     index = 0
     for i in range(0, len(list)):
-        if list[i].distance(point) < distance:
-            distance = list[i].distance(point)
+        new_dist = list[i].distance(point)
+        if new_dist < distance and new_dist != 0:
+            distance = new_dist
             index = i
             
     return list[index]
@@ -35,7 +20,7 @@ def find_reflection(sides, l, inter):
     #print("sides: ", sides)
     for ind in range(0, len(sides)):
         side = sides[ind]
-        if side.distance(inter) == 0:#(side.points[0][1] == inter[1] and side.points[1][1] == inter[1]) or (side.points[0][0] == inter[0] and side.points[1][0] == inter[0]):
+        if side.distance(inter) == 0:
             perpendicular = Line2D(side.points[0], side.points[1]).perpendicular_line(inter)
             sym_line = l.reflect(perpendicular)
             #print("reflection found: ", sym_line)
@@ -59,6 +44,23 @@ class IntersectionPlus:
                 return True
             else:
                 return False
+
+def pick_obj_and_find_reflection(big_obj, small_obj, to_reflect, prev_inter):
+    inter_list = small_obj.intersection(to_reflect)
+
+    if inter_list != []:
+        inter_s = closest_point(inter_list, prev_inter)
+        inter_b = closest_point(big_obj.intersection(to_reflect), prev_inter)
+
+        if  inter_s.distance(prev_inter) < inter_b.distance(prev_inter):
+            return find_reflection(small_obj.sides, to_reflect, inter_s), inter_s
+        else:
+            return find_reflection(big_obj.sides, to_reflect, inter_b), inter_b
+    else:
+        inter_b = closest_point(big_obj.intersection(to_reflect), prev_inter)
+        return find_reflection(big_obj.sides, to_reflect, inter_b), inter_b
+        
+
 
 # Return the distance from the start of generating the sound to reflecting back
 def angle_loop(ind, circle_points, inner_polygon, outer_polygon):
@@ -234,7 +236,7 @@ interb = closest_point(sqb.intersection(sym_line), inter)
 print(interb)
 
 sym_line2 = find_reflection(sqb.sides, sym_line, interb)
-
+square_reflections = angle_loop(0, cir_point_array, sq, sqb)
 square_reflections = Parallel(n_jobs=16)(delayed(angle_loop)(ind, cir_point_array, sq, sqb) for ind in range(0, len(cir_point_array)))
 print("Square reflections: $", square_reflections)
 
