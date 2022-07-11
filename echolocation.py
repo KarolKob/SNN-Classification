@@ -14,6 +14,26 @@ def closest_point(list, point):
             
     return list[index]
 
+def closest_point_same_side(list, point, side, prev_point):
+    distance = 9999
+    index = 0
+    A = side.p1
+    B = side.p2
+    prev_position = sign((B.x - A.x) * (prev_point.y - A.y) - (B.y - A.y) * (prev_point.x - A.x))
+    for i in range(0, len(list)):
+        position = sign((B.x - A.x) * (list[i].y - A.y) - (B.y - A.y) * (list[i].x - A.x))
+
+        if position == prev_position:
+            new_dist = list[i].distance(point)
+            if new_dist < distance and new_dist != 0:
+                distance = new_dist
+                index = i
+    
+    if distance < 200:
+        return list[index]
+    else:
+        return False
+
 # Find the side of a polygon that contains the intersection point and reflect the given line
 def find_reflection(sides, l, inter):
     #print("inter: ", inter)
@@ -24,7 +44,7 @@ def find_reflection(sides, l, inter):
             perpendicular = Line2D(side.points[0], side.points[1]).perpendicular_line(inter)
             sym_line = l.reflect(perpendicular)
             #print("reflection found: ", sym_line)
-            return sym_line
+            return sym_line, side
     return False
 
 class IntersectionPlus:
@@ -45,19 +65,19 @@ class IntersectionPlus:
             else:
                 return False
 
-def pick_obj_and_find_reflection(big_obj, small_obj, to_reflect, prev_inter):
+def pick_obj_and_find_reflection(big_obj, small_obj, to_reflect, inter, side, prev_inter):
     inter_list = small_obj.intersection(to_reflect)
 
     if inter_list != []:
-        inter_s = closest_point(inter_list, prev_inter)
-        inter_b = closest_point(big_obj.intersection(to_reflect), prev_inter)
+        inter_s = closest_point_same_side(inter_list, inter, side, prev_inter)
+        inter_b = closest_point_same_side(big_obj.intersection(to_reflect), inter, side, prev_inter)
 
-        if  inter_s.distance(prev_inter) < inter_b.distance(prev_inter):
+        if  inter_s != False and inter_s.distance(inter) < inter_b.distance(inter):
             return find_reflection(small_obj.sides, to_reflect, inter_s), inter_s
         else:
             return find_reflection(big_obj.sides, to_reflect, inter_b), inter_b
     else:
-        inter_b = closest_point(big_obj.intersection(to_reflect), prev_inter)
+        inter_b = closest_point_same_side(big_obj.intersection(to_reflect), inter, side, prev_inter)
         return find_reflection(big_obj.sides, to_reflect, inter_b), inter_b
         
 
@@ -96,52 +116,20 @@ def angle_loop(ind, circle_points, inner_polygon, outer_polygon):
         point_array.append(inter)
 
         # Find the side that contains the intersection point and reflect the line
-        sym_line = find_reflection(inner_polygon.sides, l, inter)
+        sym_line, side = find_reflection(inner_polygon.sides, l, inter)
         
         if not inter_plus.intersection_found(sym_line):
-            # Find the correct point of intersection with the big square
-            inter = closest_point(outer_polygon.intersection(sym_line), inter)
-            point_array.append(inter)
-
-            sym_line2 = find_reflection(outer_polygon.sides, sym_line, inter)
-            #print("sym_line2: $", sym_line2)
             # Iterate until limit reached or intersected with the sensor
             for i in range(0, 10):
-                if inner_polygon.intersection(sym_line2) != [] and not inner_intersection:
-                    inter = closest_point(inner_polygon.intersection(sym_line2), inter)
-                    point_array.append(inter)
-                    sym_line = find_reflection(inner_polygon.sides, sym_line2, inter)
-                    inner_intersection = True
-                
-                # The case when there's no intersecton with the inner polygon
-                else:
-                    inter = closest_point(outer_polygon.intersection(sym_line2), inter)
-                    point_array.append(inter)
-                    sym_line = find_reflection(outer_polygon.sides, sym_line2, inter)
-                    inner_intersection = False
+                refl_list, inter = pick_obj_and_find_reflection(outer_polygon, inner_polygon, sym_line, inter, side, point_array[len(point_array)-2])
+                sym_line = refl_list[0]
+                side = refl_list[1]
+                point_array.append(inter)
                 
                 if inter_plus.intersection_found(sym_line):
                     point_array.append(circle_points[ind])
                     point_matrix.append(point_array)
                     break
-                else:
-                    if inner_polygon.intersection(sym_line) != [] and not inner_intersection:
-                        inter = closest_point(inner_polygon.intersection(sym_line), inter)
-                        point_array.append(inter)
-                        sym_line = find_reflection(inner_polygon.sides, sym_line2, inter)
-                        inner_intersection = True
-                
-                    # The case when there's no intersecton with the inner polygon
-                    else:
-                        inter = closest_point(outer_polygon.intersection(sym_line2), inter)
-                        point_array.append(inter)
-                        sym_line = find_reflection(outer_polygon.sides, sym_line2, inter)
-                        inner_intersection = False
-
-                    inter = closest_point(outer_polygon.intersection(sym_line), inter)
-                    point_array.append(inter)
-
-                    sym_line2 = find_reflection(outer_polygon.sides, sym_line, inter)
 
                 if i == 9:
                     point_matrix.append(point_array)
@@ -165,7 +153,6 @@ def angle_loop(ind, circle_points, inner_polygon, outer_polygon):
             min_dist = min_dist_arr[i]
 
     return min_dist       # Count the min value for each iteration
-    
 
 # Virtual sources method for simulation of indoor acoustics
 
@@ -226,7 +213,7 @@ print(inter)
 sides = sq.sides
 
 # Find the side that contains the intersection point and reflect the line
-sym_line = find_reflection(sides, l, inter)
+sym_line, side = find_reflection(sides, l, inter)
 
 print(sym_line)
 
@@ -235,8 +222,8 @@ interb = closest_point(sqb.intersection(sym_line), inter)
 
 print(interb)
 
-sym_line2 = find_reflection(sqb.sides, sym_line, interb)
-square_reflections = angle_loop(0, cir_point_array, sq, sqb)
+sym_line2, side = find_reflection(sqb.sides, sym_line, interb)
+square_reflections = angle_loop(1, cir_point_array, sq, sqb)
 square_reflections = Parallel(n_jobs=16)(delayed(angle_loop)(ind, cir_point_array, sq, sqb) for ind in range(0, len(cir_point_array)))
 print("Square reflections: $", square_reflections)
 
