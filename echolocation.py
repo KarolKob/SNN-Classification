@@ -1,6 +1,8 @@
 from sympy import *
 from sympy.geometry import *
 from joblib import Parallel, delayed
+import matplotlib.pyplot as plt
+import numpy as np
 
 # Returns the closest point from the list to the point in the 2nd parameter
 def closest_point(list, point):
@@ -205,31 +207,38 @@ while x > -radius:
     count = count + 1
 
 # Iterate through the circle creating segments from it to (0, 0)
-l = Line2D(Point(0, 0), Point(2, 5))
 
-inter = closest_point(sq.intersection(l), Point(2, 5))
-print(inter)
+#square_reflections = angle_loop(1, cir_point_array, sq, sqb)
+#square_reflections = Parallel(n_jobs=16)(delayed(angle_loop)(ind, cir_point_array, sq, sqb) for ind in range(0, len(cir_point_array)))
+#print("Square reflections: $", square_reflections)
 
-sides = sq.sides
 
-# Find the side that contains the intersection point and reflect the line
-sym_line, side = find_reflection(sides, l, inter)
+# Points for the letter N
+n1, n2, n3, n4, n5 = [(1, 1), (0.5, 1), (0.5, -0.33), (-0.5, 1), (-1, 1)]
+n6, n7, n8, n9, n10 = [(-1, -1), (-0.5, -1), (-0.5, 0.33), (0.5, -1), (1, -1)]
+letterN = Polygon(n1, n2, n3, n4, n5, n6, n7, n8, n9, n10)
 
-print(sym_line)
+# Points for the letter A
+a1, a2, a3, a4 = [(0.4, 1), (-0.4, 1), (-1, -1), (-0.6, -1)]
+l1 = Line2D(Point(-1, -1), Point(-0.4, 1))
+l2 = l1.parallel_line(Point(-0.6, -1))
+a5 = l2.intersection(Line2D(Point(1, -0.5), Point(-1, -0.5)))[0]
+a5, a6, a7, a8 = [(a5.x, a5.y), (-1*a5.x, a5.y), (0.6, -1), (1, -1)]
+letterA = Polygon(a1, a2, a3, a4, a5, a6, a7, a8)
 
-# Find the correct point of intersection with the big square
-interb = closest_point(sqb.intersection(sym_line), inter)
+letterA_reflections = Parallel(n_jobs=16)(delayed(angle_loop)(ind, cir_point_array, letterA, sqb) for ind in range(0, len(cir_point_array)))
+print("Letter N reflections: $", letterA_reflections)
 
-print(interb)
+np.savetxt('Letter_A.txt', letterA_reflections, fmt='%.6f')
 
-sym_line2, side = find_reflection(sqb.sides, sym_line, interb)
-square_reflections = angle_loop(1, cir_point_array, sq, sqb)
-square_reflections = Parallel(n_jobs=16)(delayed(angle_loop)(ind, cir_point_array, sq, sqb) for ind in range(0, len(cir_point_array)))
-print("Square reflections: $", square_reflections)
+letterN_reflections = Parallel(n_jobs=16)(delayed(angle_loop)(ind, cir_point_array, letterN, sqb) for ind in range(0, len(cir_point_array)))
+print("Letter N reflections: $", letterN_reflections)
 
-# l.reflect(Line()) reflect symmetrically
-# Rotating a point against another point
-#z.rotate(pi/4, inter)
+np.savetxt('Letter_N.txt', letterN_reflections, fmt='%.6f')
 
-#ang = l.angle_between(l2)
-#print(ang)
+#X = np.array([1, 0.5, 0.5, -0.5, -1, -1, -0.5, -0.5, 0.5, 1])
+#Y = np.array([1, 1, -0.33, 1, 1, -1, -1, 0.33, -1, -1])
+
+# Plotting point using scatter method
+#plt.scatter(X,Y)
+#plt.show()
