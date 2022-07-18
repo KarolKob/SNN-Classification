@@ -108,8 +108,8 @@ def angle_loop(ind, circle_points, inner_polygon, outer_polygon):
         else:
             new_point = rotating_point
 
-        all_index += 1
-        print(all_index)
+        #all_index += 1
+        #print(all_index)
         l = Line2D(circle_points[ind], new_point)
         point_array = []
         point_array.append(circle_points[ind])
@@ -208,10 +208,11 @@ while x > -radius:
 
 # Iterate through the circle creating segments from it to (0, 0)
 
-#square_reflections = angle_loop(1, cir_point_array, sq, sqb)
-#square_reflections = Parallel(n_jobs=16)(delayed(angle_loop)(ind, cir_point_array, sq, sqb) for ind in range(0, len(cir_point_array)))
-#print("Square reflections: $", square_reflections)
+#Reflections of a square to check the network
+square_reflections = Parallel(n_jobs=16)(delayed(angle_loop)(ind, cir_point_array, sq, sqb) for ind in range(0, len(cir_point_array)))
+print("Square reflections: $", square_reflections)
 
+np.savetxt('Square.txt', square_reflections, fmt='%.6f')
 
 # Points for the letter N
 n1, n2, n3, n4, n5 = [(1, 1), (0.5, 1), (0.5, -0.33), (-0.5, 1), (-1, 1)]
@@ -226,8 +227,13 @@ a5 = l2.intersection(Line2D(Point(1, -0.5), Point(-1, -0.5)))[0]
 a5, a6, a7, a8 = [(a5.x, a5.y), (-1*a5.x, a5.y), (0.6, -1), (1, -1)]
 letterA = Polygon(a1, a2, a3, a4, a5, a6, a7, a8)
 
+# Points for the letter X
+x1, x2, x3, x4, x5, x6 = [(1, 1), (0.5, 1), (0, 0.2), (-0.5, 1), (-1, 1), (-0.3, 0)]
+x7, x8, x9, x10, x11, x12 = [(-1, -1), (-0.5, -1), (0, -0.2), (0.5, -1), (1, -1), (0.3, 0)]
+letterX = Polygon(x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12)
+
 letterA_reflections = Parallel(n_jobs=16)(delayed(angle_loop)(ind, cir_point_array, letterA, sqb) for ind in range(0, len(cir_point_array)))
-print("Letter N reflections: $", letterA_reflections)
+print("Letter A reflections: $", letterA_reflections)
 
 np.savetxt('Letter_A.txt', letterA_reflections, fmt='%.6f')
 
@@ -235,6 +241,11 @@ letterN_reflections = Parallel(n_jobs=16)(delayed(angle_loop)(ind, cir_point_arr
 print("Letter N reflections: $", letterN_reflections)
 
 np.savetxt('Letter_N.txt', letterN_reflections, fmt='%.6f')
+
+letterX_reflections = Parallel(n_jobs=16)(delayed(angle_loop)(ind, cir_point_array, letterX, sqb) for ind in range(0, len(cir_point_array)))
+print("Letter X reflections: $", letterX_reflections)
+
+np.savetxt('Letter_X.txt', letterX_reflections, fmt='%.6f')
 
 #X = np.array([1, 0.5, 0.5, -0.5, -1, -1, -0.5, -0.5, 0.5, 1])
 #Y = np.array([1, 1, -0.33, 1, 1, -1, -1, 0.33, -1, -1])
