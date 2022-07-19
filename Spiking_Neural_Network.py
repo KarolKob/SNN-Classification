@@ -123,12 +123,16 @@ def count_snn_response(n, input, sim_time, start_time, w_in, w_out):
                     dt2_list.append(dt2)
                     switch += 1
 
-    plt.plot(v_out)
-    plt.show()
+    #plt.plot(v_out)
+    #plt.show()
 
     return dt1_list, dt2_list      # Get the output (times between 2 first spikes)
 
-
+def trained_networks_responses(n_A, w_in_A, w_out_A, n_N, w_in_N, w_out_N, n_X, w_in_X, w_out_X, input, sim_time, start_time):
+    dt1_A, dt2_A = count_snn_response(n_A, input, sim_time, start_time, w_in_A, w_out_A)
+    dt1_N, dt2_N = count_snn_response(n_N, input, sim_time, start_time, w_in_N, w_out_N)
+    dt1_X, dt2_X = count_snn_response(n_X, input, sim_time, start_time, w_in_X, w_out_X)
+    return [[dt1_A, dt2_A], [dt1_N, dt2_N], [dt1_X, dt2_X]]
 
 def network_mapping_routing(input, wout, Cref):
     patterns = len(input)
@@ -149,7 +153,7 @@ def network_mapping_routing(input, wout, Cref):
         avg[i] = L[i]/patterns
         #  w1(i) = f(avg(i))
 
-        w1[i] = 2*(25 - avg[i])
+        w1[i] = 1.4*(26 - avg[i])
         #  w1[i] = 1.4*(26 - avg[i])
 
         if w1[i] < 0:
@@ -166,6 +170,35 @@ def network_mapping_routing(input, wout, Cref):
     dt2_mode = mode(dt2)
 
     return w1, w2, C, n, dt1, dt2, dt1_mode, dt2_mode
+
+# Read all the input data
+with open("Letter_A.txt", "r+") as letter_A:
+    A_lines = letter_A.readlines()
+
+vals_A = []
+for i in range(0, len(A_lines)):
+    vals_A.append(float(A_lines[i]))
+
+with open("Letter_N.txt", "r+") as letter_N:
+    N_lines = letter_N.readlines()
+
+vals_N = []
+for i in range(0, len(N_lines)):
+    vals_N.append(float(N_lines[i]))
+
+with open("Letter_X.txt", "r+") as letter_X:
+    X_lines = letter_X.readlines()
+
+vals_X = []
+for i in range(0, len(X_lines)):
+    vals_X.append(float(X_lines[i]))
+
+with open("Square.txt", "r+") as square:
+    square_lines = square.readlines()
+
+vals_square = []
+for i in range(0, len(square_lines)):
+    vals_square.append(float(square_lines[i]))
 
 vesicle_fusion = [1, 1, 2, 2, 3, 2, 2, 1, 3, 4, 4, 3, 2, 2, 1, 2, 4, 4, 3, 4, 3, 2, 2, 1, 2, 2, 3, 3, 4, 5, 3, 4, 3, 4, 4, 3, 2, 2, 1, 2, 3, 5, 4, 4, 3, 4, 2, 3, 2, 3, 2, 2, 3, 3, 4, 4, 3, 2, 2, 3, 4, 5, 5, 4, 4, 3, 4, 6, 8, 15, 28, 30, 30, 31, 30, 32, 33, 31, 34, 35, 37, 33, 34, 35, 36, 37, 35, 34, 36, 37, 38, 38, 36, 35, 36, 38, 40, 42, 45, 42, 48, 50, 48, 46, 47, 48, 49, 52, 56, 58, 60, 62, 66, 75, 90, 115, 150, 195, 240, 275, 300, 305, 298, 290, 270, 250, 230, 200, 175, 160, 140, 125, 115, 105, 100, 90, 82, 75, 65, 68, 63, 60, 55, 50, 47, 45, 46, 45, 42, 40, 37, 34, 35, 32, 31, 28, 25, 26, 27, 25, 22, 20, 21, 20, 15, 17, 19, 16, 18, 17, 15, 13, 12, 14, 11, 10, 8, 6, 5, 3, 4]
 
