@@ -115,3 +115,61 @@ plt.show()
 
 # figure(4)
 # plot((0:T-1)*dt,v3,'b')
+
+vesicle_fusion = [1, 1, 2, 2, 3, 2, 2, 1, 3, 4, 4, 3, 2, 2, 1, 2, 4, 4, 3, 4, 3, 2, 2, 1, 2, 2, 3, 3, 4, 5, 3, 4, 3, 4, 4, 3, 2, 2, 1, 2, 3, 5, 4, 4, 3, 4, 2, 3, 2, 3, 2, 2, 3, 3, 4, 4, 3, 2, 2, 3, 4, 5, 5, 4, 4, 3, 4, 6, 8, 15, 28, 30, 30, 31, 30, 32, 33, 31, 34, 35, 37, 33, 34, 35, 36, 37, 35, 34, 36, 37, 38, 38, 36, 35, 36, 38, 40, 42, 45, 42, 48, 50, 48, 46, 47, 48, 49, 52, 56, 58, 60, 62, 66, 75, 90, 115, 150, 195, 240, 275, 300, 305, 298, 290, 270, 250, 230, 200, 175, 160, 140, 125, 115, 105, 100, 90, 82, 75, 65, 68, 63, 60, 55, 50, 47, 45, 46, 45, 42, 40, 37, 34, 35, 32, 31, 28, 25, 26, 27, 25, 22, 20, 21, 20, 15, 17, 19, 16, 18, 17, 15, 13, 12, 14, 11, 10, 8, 6, 5, 3, 4]
+
+#skalowanie
+max_value = 80 #pA
+
+skala = max_value/max(vesicle_fusion)
+#vesicle_fusion = vesicle_fusion*skala
+for i in range(0, len(vesicle_fusion)):
+    vesicle_fusion[i] *= skala
+
+#print(vesicle_fusion)
+probkowanie = 20
+k = 0
+kk = 0
+iter = len(vesicle_fusion)
+original_data = []
+
+while True:
+    k = int(k+iter/probkowanie)
+    if k < iter:
+        original_data.append(vesicle_fusion[k] * 1.2)   # Scaling
+    else:
+        break
+    
+#print(len(original_data))
+
+merged_input = []
+merged_input.append(original_data)
+
+for i in range(1, 40):
+    L = []
+    for j in range(0, len(original_data)):
+        if j < 16 or (j > 25 and j < 29):
+            L.append(original_data[j] + random() * 13)
+        else:
+            L.append(original_data[j] + random() * 10)
+
+    merged_input.append(L)
+
+w1, w2, C, n, dt1, dt2, dt1_mode, dt2_mode = network_mapping_routing(merged_input, w_out, 0)
+
+print(dt1)
+print(dt2)
+
+wrong_input = []
+
+for i in range(0, 40):
+    N = []
+    for j in range(0, len(original_data)):
+        N.append((max(original_data) * random())/0.6)
+    
+    wrong_input.append(N)
+
+dt1, dt2 = count_snn_response(n, wrong_input, 200, 150, w1, w2)
+
+print(dt1)
+print(dt2)

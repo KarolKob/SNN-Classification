@@ -134,7 +134,7 @@ def trained_networks_responses(n_A, w_in_A, w_out_A, n_N, w_in_N, w_out_N, n_X, 
     dt1_X, dt2_X = count_snn_response(n_X, input, sim_time, start_time, w_in_X, w_out_X)
     return [[dt1_A, dt2_A], [dt1_N, dt2_N], [dt1_X, dt2_X]]
 
-def network_mapping_routing(input, wout, Cref):
+def network_mapping_routing(input, wout, Cref, d, k):
     patterns = len(input)
     sampling = len(input[0])
 
@@ -153,7 +153,7 @@ def network_mapping_routing(input, wout, Cref):
         avg[i] = L[i]/patterns
         #  w1(i) = f(avg(i))
 
-        w1[i] = 1.4*(26 - avg[i])
+        w1[i] = d*(k - avg[i])
         #  w1[i] = 1.4*(26 - avg[i])
 
         if w1[i] < 0:
@@ -200,60 +200,119 @@ vals_square = []
 for i in range(0, len(square_lines)):
     vals_square.append(float(square_lines[i]))
 
-vesicle_fusion = [1, 1, 2, 2, 3, 2, 2, 1, 3, 4, 4, 3, 2, 2, 1, 2, 4, 4, 3, 4, 3, 2, 2, 1, 2, 2, 3, 3, 4, 5, 3, 4, 3, 4, 4, 3, 2, 2, 1, 2, 3, 5, 4, 4, 3, 4, 2, 3, 2, 3, 2, 2, 3, 3, 4, 4, 3, 2, 2, 3, 4, 5, 5, 4, 4, 3, 4, 6, 8, 15, 28, 30, 30, 31, 30, 32, 33, 31, 34, 35, 37, 33, 34, 35, 36, 37, 35, 34, 36, 37, 38, 38, 36, 35, 36, 38, 40, 42, 45, 42, 48, 50, 48, 46, 47, 48, 49, 52, 56, 58, 60, 62, 66, 75, 90, 115, 150, 195, 240, 275, 300, 305, 298, 290, 270, 250, 230, 200, 175, 160, 140, 125, 115, 105, 100, 90, 82, 75, 65, 68, 63, 60, 55, 50, 47, 45, 46, 45, 42, 40, 37, 34, 35, 32, 31, 28, 25, 26, 27, 25, 22, 20, 21, 20, 15, 17, 19, 16, 18, 17, 15, 13, 12, 14, 11, 10, 8, 6, 5, 3, 4]
+merged_input_A = []
+merged_input_A.append(vals_A)
+
+for i in range(1, 40):
+    L = []
+    for j in range(0, len(vals_A)):
+        if j < 16 or (j > 25 and j < 29):
+            L.append(vals_A[j] + random() * 1.5)
+        else:
+            L.append(vals_A[j] + random() * 1.2)
+
+    merged_input_A.append(L)
 
 #skalowanie
 max_value = 80 #pA
 
-skala = max_value/max(vesicle_fusion)
-#vesicle_fusion = vesicle_fusion*skala
-for i in range(0, len(vesicle_fusion)):
-    vesicle_fusion[i] *= skala
+skala = max_value/max(map(max, merged_input_A))
+for i in range(0, len(merged_input_A)):
+    for j in range(0, len(merged_input_A[0])):
+        merged_input_A[i][j] *= skala
 
-#print(vesicle_fusion)
-probkowanie = 20
-k = 0
-kk = 0
-iter = len(vesicle_fusion)
-original_data = []
-
-while True:
-    k = int(k+iter/probkowanie)
-    if k < iter:
-        original_data.append(vesicle_fusion[k] * 1.2)   # Scaling
-    else:
-        break
-    
-#print(len(original_data))
-
-merged_input = []
-merged_input.append(original_data)
+merged_input_N = []
+merged_input_N.append(vals_N)
 
 for i in range(1, 40):
     L = []
-    for j in range(0, len(original_data)):
+    for j in range(0, len(vals_N)):
         if j < 16 or (j > 25 and j < 29):
-            L.append(original_data[j] + random() * 13)
+            L.append(vals_N[j] + random() * 1.2)
         else:
-            L.append(original_data[j] + random() * 10)
+            L.append(vals_N[j] + random() * 1)
 
-    merged_input.append(L)
+    merged_input_N.append(L)
 
-w1, w2, C, n, dt1, dt2, dt1_mode, dt2_mode = network_mapping_routing(merged_input, w_out, 0)
+#skalowanie
+max_value = 80 #pA
 
+skala = max_value/max(map(max, merged_input_N))
+for i in range(0, len(merged_input_N)):
+    for j in range(0, len(merged_input_N[0])):
+        merged_input_N[i][j] *= skala
+
+merged_input_X = []
+merged_input_X.append(vals_X)
+
+for i in range(1, 40):
+    L = []
+    for j in range(0, len(vals_X)):
+        if j < 16 or (j > 25 and j < 29):
+            L.append(vals_X[j] + random() * 1.3)
+        else:
+            L.append(vals_X[j] + random() * 1.1)
+
+    merged_input_X.append(L)
+
+#skalowanie
+max_value = 80 #pA
+
+skala = max_value/max(map(max, merged_input_X))
+for i in range(0, len(merged_input_X)):
+    for j in range(0, len(merged_input_X[0])):
+        merged_input_X[i][j] *= skala
+
+merged_input_sq = []
+merged_input_sq.append(vals_square)
+
+for i in range(1, 40):
+    L = []
+    for j in range(0, len(vals_square)):
+        if j < 16 or (j > 25 and j < 29):
+            L.append(vals_square[j] + random() * 1.2)
+        else:
+            L.append(vals_square[j] + random() * 1)
+
+    merged_input_sq.append(L)
+
+#skalowanie
+max_value = 80 #pA
+
+skala = max_value/max(map(max, merged_input_sq))
+for i in range(0, len(merged_input_sq)):
+    for j in range(0, len(merged_input_sq[0])):
+        merged_input_sq[i][j] *= skala
+
+w1_A, w2_A, C_A, n_A, dt1_A, dt2_A, dt1_mode_A, dt2_mode_A = network_mapping_routing(merged_input_A, w_out, 0, 0.21, 35)
+w1_N, w2_N, C_N, n_N, dt1_N, dt2_N, dt1_mode_N, dt2_mode_N = network_mapping_routing(merged_input_N, w_out, 0, 0.2, 54)
+w1_X, w2_X, C_X, n_X, dt1_X, dt2_X, dt1_mode_X, dt2_mode_X = network_mapping_routing(merged_input_X, w_out, 0, 0.2, 50)
+print("A")
+print(dt1_A)
+print(dt1_A)
+
+print("N")
+print(dt1_N)
+print(dt1_N)
+
+print("X")
+print(dt1_X)
+print(dt1_X)
+
+dt1, dt2 = count_snn_response(n_A, merged_input_sq, 200, 150, w1_A, w2_A)
+
+print("SNN_A -> Square")
 print(dt1)
 print(dt2)
 
-wrong_input = []
+dt1, dt2 = count_snn_response(n_N, merged_input_sq, 200, 150, w1_N, w2_N)
 
-for i in range(0, 40):
-    N = []
-    for j in range(0, len(original_data)):
-        N.append((max(original_data) * random())/0.6)
-    
-    wrong_input.append(N)
+print("SNN_N -> Square")
+print(dt1)
+print(dt2)
 
-dt1, dt2 = count_snn_response(n, wrong_input, 200, 150, w1, w2)
+dt1, dt2 = count_snn_response(n_X, merged_input_sq, 200, 150, w1_X, w2_X)
 
+print("SNN_X -> Square")
 print(dt1)
 print(dt2)
