@@ -207,9 +207,9 @@ for i in range(1, 40):
     L = []
     for j in range(0, len(vals_A)):
         if j < 16 or (j > 25 and j < 29):
-            L.append(vals_A[j] + random() * 1.5)
+            L.append(vals_A[j] + random() * 0.6)
         else:
-            L.append(vals_A[j] + random() * 1.2)
+            L.append(vals_A[j] + random() * 0.4)
 
     merged_input_A.append(L)
 
@@ -228,9 +228,9 @@ for i in range(1, 40):
     L = []
     for j in range(0, len(vals_N)):
         if j < 16 or (j > 25 and j < 29):
-            L.append(vals_N[j] + random() * 1.2)
+            L.append(vals_N[j] + random() * 0.7)
         else:
-            L.append(vals_N[j] + random() * 1)
+            L.append(vals_N[j] + random() * 0.5)
 
     merged_input_N.append(L)
 
@@ -270,9 +270,9 @@ for i in range(1, 40):
     L = []
     for j in range(0, len(vals_square)):
         if j < 16 or (j > 25 and j < 29):
-            L.append(vals_square[j] + random() * 1.2)
+            L.append(vals_square[j] + random() * 10)
         else:
-            L.append(vals_square[j] + random() * 1)
+            L.append(vals_square[j] + random() * 8)
 
     merged_input_sq.append(L)
 
@@ -284,35 +284,59 @@ for i in range(0, len(merged_input_sq)):
     for j in range(0, len(merged_input_sq[0])):
         merged_input_sq[i][j] *= skala
 
-w1_A, w2_A, C_A, n_A, dt1_A, dt2_A, dt1_mode_A, dt2_mode_A = network_mapping_routing(merged_input_A, w_out, 0, 0.21, 35)
-w1_N, w2_N, C_N, n_N, dt1_N, dt2_N, dt1_mode_N, dt2_mode_N = network_mapping_routing(merged_input_N, w_out, 0, 0.2, 54)
-w1_X, w2_X, C_X, n_X, dt1_X, dt2_X, dt1_mode_X, dt2_mode_X = network_mapping_routing(merged_input_X, w_out, 0, 0.2, 50)
+w1_A, w2_A, C_A, n_A, dt1_A, dt2_A, dt1_mode_A, dt2_mode_A = network_mapping_routing(merged_input_A, w_out, 0, 2.1, 63.5)
+w1_N, w2_N, C_N, n_N, dt1_N, dt2_N, dt1_mode_N, dt2_mode_N = network_mapping_routing(merged_input_N, w_out, 0, 0.68, 65)
+w1_X, w2_X, C_X, n_X, dt1_X, dt2_X, dt1_mode_X, dt2_mode_X = network_mapping_routing(merged_input_X, w_out, 0, 0.96, 60.9)
 print("A")
 print(dt1_A)
-print(dt1_A)
+print(dt2_A)
 
 print("N")
 print(dt1_N)
-print(dt1_N)
+print(dt2_N)
 
 print("X")
 print(dt1_X)
-print(dt1_X)
+print(dt2_X)
 
 dt1, dt2 = count_snn_response(n_A, merged_input_sq, 200, 150, w1_A, w2_A)
 
 print("SNN_A -> Square")
 print(dt1)
 print(dt2)
+print(mode(dt1))
+print(mode(dt2))
 
 dt1, dt2 = count_snn_response(n_N, merged_input_sq, 200, 150, w1_N, w2_N)
 
 print("SNN_N -> Square")
 print(dt1)
 print(dt2)
+print(mode(dt1))
+print(mode(dt2))
 
 dt1, dt2 = count_snn_response(n_X, merged_input_sq, 200, 150, w1_X, w2_X)
 
 print("SNN_X -> Square")
 print(dt1)
 print(dt2)
+print(mode(dt1))
+print(mode(dt2))
+
+dts = trained_networks_responses(n_A, w1_A, w2_A, n_N, w1_N, w2_N, n_X, w1_X, w2_X, merged_input_A, 200, 150)
+print("A")
+print(dts[0])
+print(dts[1])
+print(dts[2])
+
+dts = trained_networks_responses(n_A, w1_A, w2_A, n_N, w1_N, w2_N, n_X, w1_X, w2_X, merged_input_N, 200, 150)
+print("A")
+print(dts[0])
+print(dts[1])
+print(dts[2])
+
+dts = trained_networks_responses(n_A, w1_A, w2_A, n_N, w1_N, w2_N, n_X, w1_X, w2_X, merged_input_X, 200, 150)
+print("A")
+print(dts[0])
+print(dts[1])
+print(dts[2])
