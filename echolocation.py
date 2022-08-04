@@ -220,8 +220,8 @@ n6, n7, n8, n9, n10 = [(-1, -1), (-0.5, -1), (-0.5, 0.33), (0.5, -1), (1, -1)]
 letterN = Polygon(n1, n2, n3, n4, n5, n6, n7, n8, n9, n10)
 
 # Points for the letter A
-a1, a2, a3, a4 = [(0.4, 1), (-0.4, 1), (-1, -1), (-0.6, -1)]
-l1 = Line2D(Point(-1, -1), Point(-0.4, 1))
+a1, a2, a3, a4 = [(0.2, 1), (-0.2, 1), (-1, -1), (-0.6, -1)]
+l1 = Line2D(Point(-1, -1), Point(-0.2, 1))
 l2 = l1.parallel_line(Point(-0.6, -1))
 a5 = l2.intersection(Line2D(Point(1, -0.5), Point(-1, -0.5)))[0]
 a5, a6, a7, a8 = [(a5.x, a5.y), (-1*a5.x, a5.y), (0.6, -1), (1, -1)]
