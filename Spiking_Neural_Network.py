@@ -1,3 +1,4 @@
+from cProfile import label
 import math
 from random import random
 import numpy as np
@@ -200,6 +201,17 @@ vals_square = []
 for i in range(0, len(square_lines)):
     vals_square.append(float(square_lines[i]))
 
+#plt.plot(vals_A, label = "Litera A")
+
+#plt.plot(vals_N, label = "Litera N")
+
+#plt.plot(vals_X, label = "Litera X")
+
+#plt.plot(vals_square, label = "Kwadrat")
+#plt.ylabel('Zmierzona odległość')
+#plt.legend()
+#plt.show()
+
 merged_input_A = []
 merged_input_A.append(vals_A)
 
@@ -207,9 +219,9 @@ for i in range(1, 40):
     L = []
     for j in range(0, len(vals_A)):
         if j < 16 or (j > 25 and j < 29):
-            L.append(vals_A[j] + random() * 0.6)
+            L.append(vals_A[j] + random() * 0.8)
         else:
-            L.append(vals_A[j] + random() * 0.4)
+            L.append(vals_A[j] + random() * 0.6)
 
     merged_input_A.append(L)
 
@@ -284,7 +296,7 @@ for i in range(0, len(merged_input_sq)):
     for j in range(0, len(merged_input_sq[0])):
         merged_input_sq[i][j] *= skala
 
-w1_A, w2_A, C_A, n_A, dt1_A, dt2_A, dt1_mode_A, dt2_mode_A = network_mapping_routing(merged_input_A, w_out, 0, 2.1, 63.5)
+w1_A, w2_A, C_A, n_A, dt1_A, dt2_A, dt1_mode_A, dt2_mode_A = network_mapping_routing(merged_input_A, w_out, 0, 2.18, 63.5)
 w1_N, w2_N, C_N, n_N, dt1_N, dt2_N, dt1_mode_N, dt2_mode_N = network_mapping_routing(merged_input_N, w_out, 0, 0.68, 65)
 w1_X, w2_X, C_X, n_X, dt1_X, dt2_X, dt1_mode_X, dt2_mode_X = network_mapping_routing(merged_input_X, w_out, 0, 0.96, 60.9)
 print("A")

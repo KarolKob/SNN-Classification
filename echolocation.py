@@ -185,7 +185,7 @@ while x < radius:
 
     cir_point = Point(x, y)
     cir_point_array.append(cir_point)
-    x = x + 0.4
+    x = x + sampling_param
     count = count + 1
 
 print(count)
@@ -203,7 +203,7 @@ while x > -radius:
 
     cir_point = Point2D(x, y)
     cir_point_array.append(cir_point)
-    x = x - 0.4
+    x = x - sampling_param
     count = count + 1
 
 # Iterate through the circle creating segments from it to (0, 0)
