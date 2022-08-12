@@ -21,7 +21,15 @@ class Neuron:
             self.c = -60
             self.d = 8
 
-
+def count_acc(dt1, dt2):
+    cnt = []
+    for i in range(0, len(dt1)):
+        if dt1[i] == 3 and dt2[i] == 3:
+            cnt.append(1)
+        else:
+            cnt.append(0)
+    acc = sum(cnt)/len(cnt) * 100
+    return acc
 
 w_out = 0.00225             # TODO: Evaluate if it's correct
 
@@ -33,11 +41,12 @@ def synapse_dt(w, vin, vout, vinp, voutp):
     return I_out_s
 
 
-def count_snn_response(n, input, sim_time, start_time, w_in, w_out):
+def count_snn_response(n, input, sim_time, s_time, w_in, w_out):
     network_size = len(n)
     dt = 1      # ms
     T = math.ceil(sim_time/dt)
-    time_range = range(0, T-2)
+    start_time = math.ceil(s_time/dt)
+    time_range = range(0, T-1)
 
     dt1_list = []
     dt2_list = []
@@ -100,7 +109,7 @@ def count_snn_response(n, input, sim_time, start_time, w_in, w_out):
                 if i > 0:
                     I_out[i] += synapse_dt(w_out[j], v[j][i], v_out[i], v[j][i - 1], v_out[i - 1])
                 else:
-                    I_out[i] += synapse_dt(w_out[j], v[j][i], v_out[i], 0, 0)
+                    I_out[i] += synapse_dt(w_out[j], v[j][i], v_out[i], 0, -70)
 
             # Count output
             if v_out[i] < 35:
@@ -124,8 +133,16 @@ def count_snn_response(n, input, sim_time, start_time, w_in, w_out):
                     dt2_list.append(dt2)
                     switch += 1
 
-    #plt.plot(v_out)
+    plt.plot(v_out[150:199])
+    plt.ylabel('Odpowiedź sieci [mV]')
+    plt.xlabel('Czas symulacji [ms]')
+    plt.show()
+    #plt.plot(u_out)
     #plt.show()
+    #plt.plot(I_out)
+    #plt.show()
+    
+    print("Positive response:", count_acc(dt1_list, dt2_list))
 
     return dt1_list, dt2_list      # Get the output (times between 2 first spikes)
 
@@ -296,6 +313,23 @@ for i in range(0, len(merged_input_sq)):
     for j in range(0, len(merged_input_sq[0])):
         merged_input_sq[i][j] *= skala
 
+# Plotting
+#for i in range(0, 5):
+#    plt.plot(merged_input_A[i*8], color = 'blue')
+#plt.show()
+
+#for i in range(0, 5):
+#    plt.plot(merged_input_N[i*8], color = 'orange')
+#plt.show()
+
+#for i in range(0, 5):
+#    plt.plot(merged_input_X[i*8], color = 'green')
+#plt.show()
+
+#for i in range(0, 5):
+#    plt.plot(merged_input_sq[i*8], color = 'red')
+#plt.show()
+
 w1_A, w2_A, C_A, n_A, dt1_A, dt2_A, dt1_mode_A, dt2_mode_A = network_mapping_routing(merged_input_A, w_out, 0, 2.18, 63.5)
 w1_N, w2_N, C_N, n_N, dt1_N, dt2_N, dt1_mode_N, dt2_mode_N = network_mapping_routing(merged_input_N, w_out, 0, 0.68, 65)
 w1_X, w2_X, C_X, n_X, dt1_X, dt2_X, dt1_mode_X, dt2_mode_X = network_mapping_routing(merged_input_X, w_out, 0, 0.96, 60.9)
@@ -335,20 +369,56 @@ print(dt2)
 print(mode(dt1))
 print(mode(dt2))
 
+print("Input: A")
 dts = trained_networks_responses(n_A, w1_A, w2_A, n_N, w1_N, w2_N, n_X, w1_X, w2_X, merged_input_A, 200, 150)
-print("A")
-print(dts[0])
-print(dts[1])
-print(dts[2])
+print("SNN_A")
+print(dts[0][0])
+print(dts[0][1])
+print(mode(dts[0][0]))
+print(mode(dts[0][1]))
+print("SNN_N")
+print(dts[1][0])
+print(dts[1][1])
+print(mode(dts[1][0]))
+print(mode(dts[1][1]))
+print("SNN_X")
+print(dts[2][0])
+print(dts[2][1])
+print(mode(dts[2][0]))
+print(mode(dts[2][1]))
 
+print("Input: N")
 dts = trained_networks_responses(n_A, w1_A, w2_A, n_N, w1_N, w2_N, n_X, w1_X, w2_X, merged_input_N, 200, 150)
-print("A")
-print(dts[0])
-print(dts[1])
-print(dts[2])
+print("SNN_A")
+print(dts[0][0])
+print(dts[0][1])
+print(mode(dts[0][0]))
+print(mode(dts[0][1]))
+print("SNN_N")
+print(dts[1][0])
+print(dts[1][1])
+print(mode(dts[1][0]))
+print(mode(dts[1][1]))
+print("SNN_X")
+print(dts[2][0])
+print(dts[2][1])
+print(mode(dts[2][0]))
+print(mode(dts[2][1]))
 
+print("Input: X")
 dts = trained_networks_responses(n_A, w1_A, w2_A, n_N, w1_N, w2_N, n_X, w1_X, w2_X, merged_input_X, 200, 150)
-print("A")
-print(dts[0])
-print(dts[1])
-print(dts[2])
+print("SNN_A")
+print(dts[0][0])
+print(dts[0][1])
+print(mode(dts[0][0]))
+print(mode(dts[0][1]))
+print("SNN_N")
+print(dts[1][0])
+print(dts[1][1])
+print(mode(dts[1][0]))
+print(mode(dts[1][1]))
+print("SNN_X")
+print(dts[2][0])
+print(dts[2][1])
+print(mode(dts[2][0]))
+print(mode(dts[2][1]))
