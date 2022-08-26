@@ -136,7 +136,7 @@ def count_snn_response(n, input, sim_time, s_time, w_in, w_out):
     plt.plot(v_out[150:199])
     plt.ylabel('Odpowiedź sieci [mV]')
     plt.xlabel('Czas symulacji [ms]')
-    plt.show()
+    #plt.show()
     #plt.plot(u_out)
     #plt.show()
     #plt.plot(I_out)
@@ -314,20 +314,28 @@ for i in range(0, len(merged_input_sq)):
         merged_input_sq[i][j] *= skala
 
 # Plotting
-#for i in range(0, 5):
-#    plt.plot(merged_input_A[i*8], color = 'blue')
+for i in range(1, 6):
+    plt.plot(merged_input_A[i*7], color = 'blue')
+plt.ylabel('Prąd [pA]')
+plt.xlabel('Odczyt')
 #plt.show()
 
-#for i in range(0, 5):
-#    plt.plot(merged_input_N[i*8], color = 'orange')
+for i in range(1, 6):
+    plt.plot(merged_input_N[i*7], color = 'orange')
+plt.ylabel('Prąd [pA]')
+plt.xlabel('Odczyt')
 #plt.show()
 
-#for i in range(0, 5):
-#    plt.plot(merged_input_X[i*8], color = 'green')
+for i in range(1, 6):
+    plt.plot(merged_input_X[i*7], color = 'green')
+plt.ylabel('Prąd [pA]')
+plt.xlabel('Odczyt')
 #plt.show()
 
-#for i in range(0, 5):
-#    plt.plot(merged_input_sq[i*8], color = 'red')
+for i in range(1, 6):
+    plt.plot(merged_input_sq[i*7], color = 'red')
+plt.ylabel('Prąd [pA]')
+plt.xlabel('Odczyt')
 #plt.show()
 
 w1_A, w2_A, C_A, n_A, dt1_A, dt2_A, dt1_mode_A, dt2_mode_A = network_mapping_routing(merged_input_A, w_out, 0, 2.18, 63.5)
